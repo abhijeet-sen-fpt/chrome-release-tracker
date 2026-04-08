@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         channel: [Stable, Beta, Dev, Canary]
         platform: [Windows, Mac]
@@ -21,8 +22,9 @@ jobs:
       - name: Fetch latest Chrome version
         id: chrome
         run: |
-          VERSION=$(curl -s "https://chromiumdash.appspot.com/fetch_releases?channel=${{ matrix.channel }}&platform=${{ matrix.platform }}&num=1" \
-            | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[0]['version'])")
+          RESPONSE=$(curl -s "https://chromiumdash.appspot.com/fetch_releases?channel=${{ matrix.channel }}&platform=${{ matrix.platform }}&num=1")
+          echo "API Response: $RESPONSE"
+          VERSION=$(echo "$RESPONSE" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[0]['version']) if data else sys.exit(1)")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "${{ matrix.channel }} / ${{ matrix.platform }} → $VERSION"
 
