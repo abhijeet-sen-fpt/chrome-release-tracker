@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        channel: [Stable, Beta, Dev, Canary]
+        channel: [Stable, Beta]
         platform: [Windows, Mac]
 
     steps:
