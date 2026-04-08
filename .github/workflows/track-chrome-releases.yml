@@ -2,12 +2,17 @@ name: Track Chrome Releases
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
   check-chrome-release:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        channel: [Stable, Beta, Dev, Canary]
+        platform: [Windows, Mac, Android]
 
     steps:
       - name: Checkout repository
@@ -16,16 +21,17 @@ jobs:
       - name: Fetch latest Chrome version
         id: chrome
         run: |
-          VERSION=$(curl -s "https://chromiumdash.appspot.com/fetch_releases?channel=Stable&platform=Linux&num=1" \
+          VERSION=$(curl -s "https://chromiumdash.appspot.com/fetch_releases?channel=${{ matrix.channel }}&platform=${{ matrix.platform }}&num=1" \
             | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[0]['version'])")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Stable Chrome version: $VERSION"
+          echo "${{ matrix.channel }} / ${{ matrix.platform }} → $VERSION"
 
       - name: Read last known version
         id: last
         run: |
-          if [ -f chrome-version.txt ]; then
-            echo "version=$(cat chrome-version.txt)" >> $GITHUB_OUTPUT
+          FILE="versions/chrome-${{ matrix.channel }}-${{ matrix.platform }}.txt"
+          if [ -f "$FILE" ]; then
+            echo "version=$(cat $FILE)" >> $GITHUB_OUTPUT
           else
             echo "version=none" >> $GITHUB_OUTPUT
           fi
@@ -42,21 +48,26 @@ jobs:
       - name: Update version file
         if: steps.compare.outputs.new_release == 'true'
         run: |
-          echo "${{ steps.chrome.outputs.version }}" > chrome-version.txt
+          mkdir -p versions
+          FILE="versions/chrome-${{ matrix.channel }}-${{ matrix.platform }}.txt"
+          echo "${{ steps.chrome.outputs.version }}" > "$FILE"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add chrome-version.txt
-          git commit -m "chore: Chrome updated to ${{ steps.chrome.outputs.version }}"
+          git add "$FILE"
+          git commit -m "chore: Chrome ${{ matrix.channel }} (${{ matrix.platform }}) → ${{ steps.chrome.outputs.version }}"
+          git pull --rebase
           git push
 
       - name: Create GitHub Release
         if: steps.compare.outputs.new_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: chrome-${{ steps.chrome.outputs.version }}
-          name: "Chrome ${{ steps.chrome.outputs.version }}"
+          tag_name: chrome-${{ matrix.channel }}-${{ matrix.platform }}-${{ steps.chrome.outputs.version }}
+          name: "Chrome ${{ matrix.channel }} ${{ matrix.platform }} ${{ steps.chrome.outputs.version }}"
           body: |
-            🚀 New stable Chrome release detected!
+            🚀 New Chrome release detected!
+            **Channel:** ${{ matrix.channel }}
+            **Platform:** ${{ matrix.platform }}
             **Version:** `${{ steps.chrome.outputs.version }}`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
