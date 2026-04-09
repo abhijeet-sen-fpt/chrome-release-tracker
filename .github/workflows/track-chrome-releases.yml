@@ -107,27 +107,37 @@ jobs:
         id: email
         if: steps.check.outputs.has_updates == 'true'
         run: |
-          BODY="Chrome versions have been updated!\n\nUPDATED:\n"
+          BODY="Chrome versions have been updated!
+
+UPDATED:"
           for FILE in updates/*.txt; do
             NAME=$(basename "$FILE" .txt)
             CHANNEL=$(echo "$NAME" | cut -d'-' -f1)
             PLATFORM=$(echo "$NAME" | cut -d'-' -f2)
             VERSION=$(cat "$FILE")
-            BODY+="  ★ $CHANNEL / $PLATFORM → $VERSION\n"
+            BODY+="
+  ★ $CHANNEL / $PLATFORM → $VERSION"
           done
-          BODY+="\nALL CURRENT VERSIONS:\n"
+          BODY+="
+
+ALL CURRENT VERSIONS:"
           for FILE in versions/*.txt; do
             NAME=$(basename "$FILE" .txt)
             CHANNEL=$(echo "$NAME" | sed 's/chrome-//' | cut -d'-' -f1)
             PLATFORM=$(echo "$NAME" | sed 's/chrome-//' | cut -d'-' -f2)
             VERSION=$(cat "$FILE")
             if ls updates/ | grep -q "${CHANNEL}-${PLATFORM}"; then
-              BODY+="  ★ $CHANNEL / $PLATFORM: $VERSION  ← UPDATED\n"
+              BODY+="
+  ★ $CHANNEL / $PLATFORM: $VERSION  ← UPDATED"
             else
-              BODY+="    $CHANNEL / $PLATFORM: $VERSION\n"
+              BODY+="
+    $CHANNEL / $PLATFORM: $VERSION"
             fi
           done
-          echo "body=$BODY" >> $GITHUB_OUTPUT
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "body<<$EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Send email to Teams channel
         if: steps.check.outputs.has_updates == 'true'
