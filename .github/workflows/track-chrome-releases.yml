@@ -107,27 +107,34 @@ jobs:
         id: email
         if: steps.check.outputs.has_updates == 'true'
         run: |
-          BODY="Chrome versions have been updated!\n\nUPDATED:\n"
-          for FILE in updates/*.txt; do
-            NAME=$(basename "$FILE" .txt)
-            CHANNEL=$(echo "$NAME" | cut -d'-' -f1)
-            PLATFORM=$(echo "$NAME" | cut -d'-' -f2)
-            VERSION=$(cat "$FILE")
-            BODY+="  ★ $CHANNEL / $PLATFORM → $VERSION\n"
-          done
-          BODY+="\nALL CURRENT VERSIONS:\n"
-          for FILE in versions/*.txt; do
-            NAME=$(basename "$FILE" .txt)
-            CHANNEL=$(echo "$NAME" | sed 's/chrome-//' | cut -d'-' -f1)
-            PLATFORM=$(echo "$NAME" | sed 's/chrome-//' | cut -d'-' -f2)
-            VERSION=$(cat "$FILE")
-            if ls updates/ | grep -q "${CHANNEL}-${PLATFORM}"; then
-              BODY+="  ★ $CHANNEL / $PLATFORM: $VERSION  ← UPDATED\n"
-            else
-              BODY+="    $CHANNEL / $PLATFORM: $VERSION\n"
-            fi
-          done
-          echo "body=$BODY" >> $GITHUB_OUTPUT
+          {
+            echo "Chrome versions have been updated!"
+            echo ""
+            echo "UPDATED:"
+            for FILE in updates/*.txt; do
+              NAME=$(basename "$FILE" .txt)
+              CHANNEL=$(echo "$NAME" | cut -d'-' -f1)
+              PLATFORM=$(echo "$NAME" | cut -d'-' -f2)
+              VERSION=$(cat "$FILE")
+              echo "  ★ $CHANNEL / $PLATFORM → $VERSION"
+            done
+            echo ""
+            echo "ALL CURRENT VERSIONS:"
+            for FILE in versions/*.txt; do
+              NAME=$(basename "$FILE" .txt)
+              CHANNEL=$(echo "$NAME" | sed 's/chrome-//' | cut -d'-' -f1)
+              PLATFORM=$(echo "$NAME" | sed 's/chrome-//' | cut -d'-' -f2)
+              VERSION=$(cat "$FILE")
+              if ls updates/ | grep -q "${CHANNEL}-${PLATFORM}"; then
+                echo "  ★ $CHANNEL / $PLATFORM: $VERSION  ← UPDATED"
+              else
+                echo "    $CHANNEL / $PLATFORM: $VERSION"
+              fi
+            done
+          } > /tmp/email_body.txt
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/email_body.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send email
         if: steps.check.outputs.has_updates == 'true'
