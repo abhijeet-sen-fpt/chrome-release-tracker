@@ -56,8 +56,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$FILE"
           git commit -m "chore: Chrome ${{ matrix.channel }} (${{ matrix.platform }}) → ${{ steps.chrome.outputs.version }}"
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "Push failed, retrying in $i seconds..."
+            sleep $i
+          done
 
       - name: Mark as updated
         if: steps.compare.outputs.new_release == 'true'
@@ -68,8 +71,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add updates/
           git commit -m "track: mark Chrome ${{ matrix.channel }} ${{ matrix.platform }} as updated" || true
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "Push failed, retrying in $i seconds..."
+            sleep $i
+          done
 
       - name: Create GitHub Release
         if: steps.compare.outputs.new_release == 'true'
@@ -145,8 +151,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$FILE"
           git commit -m "chore: Firefox ${{ matrix.channel }} (${{ matrix.platform }}) → ${{ steps.firefox.outputs.version }}"
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "Push failed, retrying in $i seconds..."
+            sleep $i
+          done
 
       - name: Mark as updated
         if: steps.compare.outputs.new_release == 'true'
@@ -157,8 +166,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add updates/
           git commit -m "track: mark Firefox ${{ matrix.channel }} ${{ matrix.platform }} as updated" || true
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "Push failed, retrying in $i seconds..."
+            sleep $i
+          done
 
       - name: Create GitHub Release
         if: steps.compare.outputs.new_release == 'true'
@@ -249,8 +261,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$FILE"
           git commit -m "chore: Edge ${{ matrix.channel }} (${{ matrix.platform }}) → ${{ steps.edge.outputs.version }}"
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "Push failed, retrying in $i seconds..."
+            sleep $i
+          done
 
       - name: Mark as updated
         if: steps.compare.outputs.new_release == 'true'
@@ -261,8 +276,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add updates/
           git commit -m "track: mark Edge ${{ matrix.channel }} ${{ matrix.platform }} as updated" || true
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "Push failed, retrying in $i seconds..."
+            sleep $i
+          done
 
       - name: Create GitHub Release
         if: steps.compare.outputs.new_release == 'true'
