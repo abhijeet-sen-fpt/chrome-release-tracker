@@ -38,7 +38,9 @@ jobs:
       - name: Compare versions
         id: compare
         run: |
-          if [ "${{ steps.chrome.outputs.version }}" != "${{ steps.last.outputs.version }}" ]; then
+          CURRENT_MAJOR=$(echo "${{ steps.chrome.outputs.version }}" | cut -d'.' -f1)
+          LAST_MAJOR=$(echo "${{ steps.last.outputs.version }}" | cut -d'.' -f1)
+          if [ "$CURRENT_MAJOR" != "$LAST_MAJOR" ]; then
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
             echo "new_release=false" >> $GITHUB_OUTPUT
